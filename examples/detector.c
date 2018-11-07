@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include "darknet.h"
 
 #include <sys/stat.h>
@@ -664,7 +665,8 @@ int run_image_inference_callback(char *input, network *net, image **alphabet, ch
         image sized = letterbox_image(im, net->w, net->h);
         layer l = net->layers[net->n-1];
 
-		char *outfile = 0;
+		char *outfile = NULL;
+		char *dirname = "annotated_images";
         float *X = sized.data;
         double time = what_time_is_it_now();
         network_predict(net, X);
@@ -674,6 +676,11 @@ int run_image_inference_callback(char *input, network *net, image **alphabet, ch
         if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
         draw_detections(im, dets, nboxes, thresh, names, alphabet, l.classes);
         free_detections(dets, nboxes);
+		//Sasprintf(outfile, "annotated_images/");
+		//Sasprintf(outfile, &input);
+		asprintf(&outfile, "%s/%s", dirname, input);
+		printf("%s", outfile);
+
         if(outfile){
             save_image(im, outfile);
         }
@@ -689,6 +696,7 @@ int run_image_inference_callback(char *input, network *net, image **alphabet, ch
 		*/
         free_image(im);
         free_image(sized);
+		free(outfile);
 		return 0;
 }
 
