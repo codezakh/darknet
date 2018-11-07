@@ -688,19 +688,11 @@ void test_detector_scriptable(char *datacfg, char *cfgfile, char *weightfile, ch
     char *name_list = option_find_str(options, "names", "data/names.list");
     char **names = get_labels(name_list);
 
-	if (!dn_is_directory(filename)) {
-		;
-	} else {
-		list_contents_of_directory(filename);
-	}
-
-
-
     image **alphabet = load_alphabet();
     network *net = load_network(cfgfile, weightfile, 0);
     set_batch_network(net, 1);
     srand(2222222);
-    double time;
+    //double time;
     char buff[256];
     char *input = buff;
     float nms=.45;
@@ -714,7 +706,7 @@ void test_detector_scriptable(char *datacfg, char *cfgfile, char *weightfile, ch
             if(!input) return;
             strtok(input, "\n");
         }
-		int k = run_image_inference_callback(input, net, alphabet, names, thresh, hier_thresh, nms);
+		run_image_inference_callback(input, net, alphabet, names, thresh, hier_thresh, nms);
 		/*
         image im = load_image_color(input,0,0);
         image sized = letterbox_image(im, net->w, net->h);
