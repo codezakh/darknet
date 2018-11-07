@@ -13,6 +13,21 @@ fontScale              = 0.6
 fontColor              = (238,20,20)
 lineType               = 2
 
+
+def partition_human_image(image):
+    # images are 480 tall and 640 wide
+    partition_one = image[0:224, 0:224]
+    partition_two = image[0:224, 224:448]
+    partition_three = image[0:224, 448:672]
+
+    partition_four = image[224:448, 0:224]
+    partition_five = image[224:448, 224:448]
+    partition_six = image[224:448, 448:672]
+
+    for idx, partition in enumerate((partition_one, partition_two, partition_three,
+            partition_four, partition_five, partition_six)):
+        cv2.imshow("part {}".format(idx), partition)
+
 def get_iou(bb1, bb2):
     """
     Calculate the Intersection over Union (IoU) of two bounding boxes.
@@ -58,10 +73,14 @@ def get_iou(bb1, bb2):
     # compute the intersection over union by taking the intersection
     # area and dividing it by the sum of prediction + ground-truth
     # areas - the interesection area
-    iou = intersection_area / float(bb1_area + bb2_area - intersection_area)
-    assert iou >= 0.0
-    assert iou <= 1.0
-    return iou
+    #iou = intersection_area / float(bb1_area + bb2_area - intersection_area)
+    #assert iou >= 0.0
+    #assert iou <= 1.0
+    #return iou
+
+    # return the intersection divided by bb2's area, because this function will
+    # really only be used to check how much a bounding box intersects with a ROI
+    return intersection_area / float(bb2_area)
 
 def tup2int(tup):
     return tuple(int(_) for _ in tup)
@@ -80,6 +99,9 @@ class BBox:
 
     def __getitem__(self, item):
         return getattr(self, item)
+
+    def get_pct_of_self_in_other(self, otherbbox):
+        return get_iou(otherbbox, self)
     
     @classmethod
     def from_darknet(cls, dn_output_row):
@@ -99,10 +121,12 @@ dn.set_gpu(0)
 net = dn.load_net("cfg/yolov3.cfg", "yolov3.weights", 0)
 meta = dn.load_meta("cfg/coco.data")
 
-r = dn.detect(net, meta, "data/dog.jpg")
+r = dn.detect(net, meta, "predicted_images/ifm-ips-01_1540306640.jpg")
 print(r)
 bboxes = [BBox.from_darknet(row) for row in r]
-img = cv2.imread("data/dog.jpg")
+img = cv2.imread("predicted_images/ifm-ips-01_1540306640.jpg")
+
+partition_human_image(img)
 
 for bbox in bboxes:
     bbox.draw(img)
